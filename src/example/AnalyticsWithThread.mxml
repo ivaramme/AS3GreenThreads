@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" creationComplete="onCreationComplete()" width="275" height="392">
+	<mx:Script>
+		<![CDATA[
+        import example.analytics.AnalyticsWithThreadProcessor;
+        import example.analytics.AnalyticsNoThreadProcessor;
+        import example.analytics.IAnalyticsProcessor;
+
+        private var loader:URLLoader = new URLLoader();
+        [Bindable]
+        private var process:IAnalyticsProcessor;
+
+        private function onCreationComplete():void {
+            loader.addEventListener(Event.COMPLETE, onDataLoaded);
+            loader.load(new URLRequest("data.xml"));
+        }
+
+        private function onDataLoaded(event:Event):void {
+            var xml:XML = XML(loader.data);
+
+            process = new AnalyticsWithThreadProcessor(xml);
+            process.addEventListener(Event.COMPLETE, onProcessComplete);
+            start.enabled = true;
+        }
+
+        private function onProcessComplete(event:Event):void {
+            progress.text = "Total: " + process.points.length;
+            spinner.visible = false;
+            start.enabled = true;
+        }
+
+        private function reset():void {
+            start.enabled = false;
+            process.reset();
+            progress.text = "";
+            spinner.visible = false;
+        }
+        ]]>
+	</mx:Script>
+	<mx:Label id="progress" x="10" y="10" width="161"/>
+	<mx:List id="points" x="10" y="36" width="254" height="342" dataProvider="{process.points}"></mx:List>
+	<mx:Button id="start" x="182" y="8" label="Start" enabled="false" click="reset(); spinner.visible=true; process.start();"/>
+	<mx:Image id="spinner" x="245" y="10" width="20" height="20" source="@Embed('/example/assets/spinner.swf')" visible="false"/>
+</mx:Application>
